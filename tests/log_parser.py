@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[706]:
+# In[1]:
 
 
 import re
@@ -118,7 +118,7 @@ def get_cancel_msg(log, po):
 # #### Description
 # The test case is for checking if the parent order in completed within the specified trading period.
 
-# In[717]:
+# In[2]:
 
 
 def check_order_completion(file_path, po):
@@ -138,7 +138,7 @@ def check_order_completion(file_path, po):
     return all_filled
 
 
-# In[721]:
+# In[3]:
 
 
 check_order_completion('/home/xhu/log/testfill.txt','10000')
@@ -156,7 +156,7 @@ check_order_completion('/home/xhu/log/testfill.txt','10000')
 # 4. End time after 15:00 and participate in close auction
 # 5. End time between 14:57 and 15:00, cancel orders before 14:57
 
-# In[671]:
+# In[4]:
 
 
 def check_noon_break(file_path, po):
@@ -171,13 +171,13 @@ def check_noon_break(file_path, po):
     return not break_placement
 
 
-# In[707]:
+# In[5]:
 
 
 check_noon_break('/home/xhu/log/testclose0917.txt','10000')
 
 
-# In[712]:
+# In[7]:
 
 
 def check_after_close(file_path, po):
@@ -229,28 +229,33 @@ def check_after_close(file_path, po):
         if time > close_start:
             firstCancelP_after_close = canp
     if doClose == 'f':
+        # Do not explicitily allucate close size, but can participate in close auction when regular size parcially filled
         # The last active size before close plus the filled size should equals to parent order size
         close_placement = (lastActive_before_close + filled_size_before_close == parentSize)
     else:
-        # the last active size before close plus the filled size and the close size should equals to Parent order size
+        # Allocate the close size at the start time, unfilled regular size can participate in close auction
+        # The last active size before close plus the filled size and the close size should equals to Parent order size
         close = orders.loc[orders['type'] == 'Close']
         closeSize = sum(close['create_size'])
         close_placement = ((math.ceil(
             int(lastActive_before_close + filled_size_before_close) / 100.0)) * 100 + closeSize == parentSize)
-        
     return (not afterEnd_placement) & close_placement
 
 
-# In[713]:
+# In[8]:
 
 
 check_after_close('/home/xhu/log/testclose0917.txt','10001')
 
 
-# In[704]:
+# In[9]:
 
 
 check_after_close('/home/xhu/log/testclose0916.txt','10000')
 
 
-#
+# In[ ]:
+
+
+
+
