@@ -4,7 +4,7 @@ Created on Thu Sep 23 20:20:04 2021
 
 @author: Hxl
 """
-# In[38]:
+# In[5]:
 
 
 import re
@@ -122,6 +122,15 @@ def get_cancel_msg(log, po):
     cancel_info = pd.DataFrame(list(zip(cancel_id, cancel_time)), columns=['oid', 'time'])
     return cancel_info
 
+def get_stopped_time(log, po):
+    cond_stopped = r'AGS action.*removePO.*'
+    cond_POid = r'.*POId=' + po
+    cond_stoppedTime = r'(?<=current_t=)\d*'
+    stopped_time = int(get_specific_values(log,cond_stopped,cond_stoppedTime,cond_POid)[0])
+    return stopped_time
+    
+    
+
 
 # ## Test Case 1: Order completion
 # #### Description
@@ -169,7 +178,7 @@ check_order_completion('/home/xhu/log/testSTAR0919.log','10000')
 check_order_completion('/home/xhu/log/testclose688001.log','10000')
 
 
-# ## Test case 2: Order placement in noon break
+# ## Test case 2: Order placement during noon break
 # #### Description
 # The test case is to check whether the system is still creating or cancelling orders after morning session end
 # 
@@ -317,49 +326,73 @@ def check_STAR_order_lot(file_path, po):
 check_STAR_order_lot('/home/xhu/log/testSTAR0919.log','10000')
 
 
-# ## Test case 5: Quick execution with a small order
+# ## Test case 5: Stop of a quick completion
 # ### Description
-# The test is to check if a small order placement, like 100 or 200 shares, can be quickly executed even with a long execution time
+# The test is to check if the strategy would stop quickly after a small order placement like 100 or 200 shares is completed
 
-# In[123]:
+# In[4]:
 
 
 def check_quick_execution(file_path, po):
     log = read_log_file(file_path)
-    OPs = [2*int(po[-1]),2*int(po[-1])+1]
-    complete_time = []
-    for op in OPs:
-        cond_Completed = r'.*OMS removed OP.*'
-        cond_OPid = r'.*OPid=' + str(op)
-        cond_Complete_time = r'(?<=time=)\d*'
-        complete_time.append(int(get_specific_values(log,cond_Completed,cond_Complete_time,cond_OPid)[0]))
+    cond_completed = r'.*Algo=VWAP,completed.*'
+    cond_completedTime =  r'(?<=current_t=)\d*'
+    cond_PO = r'Order=' + po
+    complete_time = int(get_specific_values(log,cond_completed,cond_completedTime,cond_PO)[0])
+    stopped_time = get_stopped_time(log,po)
     
-    # get start end time of parent order
-    condPO = r'Added parent order.*'  # AddPO line
-    condPO_starttime = r'(?<=startTime=)\d*'
-    condPO_endtime = r'(?<=endTime=)\d*'
-    condPO_id = r'.*orderId=' + po + '.*'  # conditions to get doClose information of po:
-    startTime = int(get_specific_values(log,condPO,condPO_starttime,condPO_id)[0])
-    endTime = int(get_specific_values(log,condPO,condPO_endtime,condPO_id)[0])
-    
-    # return an interval rate
-    interval = endTime-max(complete_time)
-    interval_rate = interval/(endTime-startTime)
-    return interval_rate
+    # return an interval
+    interval = stopped_time - complete_time
+    return interval/1000000
 
 
-# In[124]:
+# In[6]:
 
 
 # 200 shares
 check_quick_execution('/home/xhu/log/test_quickExecution.log','10000')
 
 
-# In[125]:
+# In[7]:
 
 
 # 100 shares
 check_quick_execution('/home/xhu/log/test_quickExecution.log','10001')
+
+
+# ## Test case 6: Stop of a large order
+# #### Description
+# The test is to check if a large order with a limit duration quickly stops after the parent order end time
+# 
+
+# In[8]:
+
+
+def check_large_stop(file_path, po):
+    log = read_log_file(file_path)
+    stopped_time = get_stopped_time(log,po)
+    
+    # get start end time of parent order
+    condPO = r'Added parent order.*'  # AddPO line
+    condPO_endtime = r'(?<=endTime=)\d*'
+    condPO_id = r'.*orderId=' + po + '.*'  # conditions to get doClose information of po:
+    endTime = int(get_specific_values(log,condPO,condPO_endtime,condPO_id)[0])
+    
+    interval = stopped_time - endTime
+    return interval/1000000
+
+
+# In[9]:
+
+
+check_large_stop('/home/xhu/log/test_largeStop.log','10000')
+
+
+# In[10]:
+
+
+# STAR market
+check_large_stop('/home/xhu/log/test_largeStop.log','10001')
 
 
 # In[ ]:
