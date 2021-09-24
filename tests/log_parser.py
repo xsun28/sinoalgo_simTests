@@ -342,6 +342,7 @@ def check_quick_execution(file_path, po):
     startTime = int(get_specific_values(log,condPO,condPO_starttime,condPO_id)[0])
     endTime = int(get_specific_values(log,condPO,condPO_endtime,condPO_id)[0])
     
+    # return an interval rate
     interval = endTime-max(complete_time)
     interval_rate = interval/(endTime-startTime)
     return interval_rate
@@ -350,12 +351,14 @@ def check_quick_execution(file_path, po):
 # In[124]:
 
 
+# 200 shares
 check_quick_execution('/home/xhu/log/test_quickExecution.log','10000')
 
 
 # In[125]:
 
 
+# 100 shares
 check_quick_execution('/home/xhu/log/test_quickExecution.log','10001')
 
 
