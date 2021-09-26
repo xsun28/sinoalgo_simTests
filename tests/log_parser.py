@@ -160,32 +160,36 @@ def check_order_completion(file_path, po):
     return all_filled
 
 
+# #### Mainboard
+
 # In[61]:
 
 
-# Mainboard 
 check_order_completion('/home/xhu/log/testfill.txt','10000')
 
+
+# #### Small and Medium Enterprises (SME) Board
 
 # In[43]:
 
 
-# Small and Medium Enterprises (SME) Board 002024.XSHE
-check_order_completion('/home/xhu/log/test_SMEmarket.log','10000')
+check_order_completion('/home/xhu/log/test_SMEmarket.log','10000') # 002024.XSHE
 
 
-# In[39]:
+# #### Growth Enterprise Market (GEM)
+
+# In[54]:
 
 
-# Growth Enterprise Market (GEM) 300059.XSHE
-check_order_completion('/home/xhu/log/test_GEMmarket.log','10000')
+check_order_completion('/home/xhu/log/test_GEMmarket.log','10000') # 300059.XSHE
 
+
+# #### Sci-Tech Innovation Board (STAR)
 
 # In[72]:
 
 
-# Sci-Tech Innovation Board (STAR) 688001.XSHG
-check_order_completion('/home/xhu/log/testSTAR0919.log','10000')
+check_order_completion('/home/xhu/log/testSTAR0919.log','10000') #  688001.XSHG
 
 
 # In[53]:
@@ -219,31 +223,35 @@ def check_noon_break(file_path, po):
     return not break_placement
 
 
+# #### Mainboard
+
 # In[5]:
 
 
-# Mainboard
 check_noon_break('/home/xhu/log/testclose0917.txt','10000')
 
+
+# #### Small and Medium Enterprises (SME) Board
 
 # In[52]:
 
 
-# Small and Medium Enterprises (SME) Board 002024.XSHE
 check_noon_break('/home/xhu/log/test_SMEmarket.log','10000')
 
+
+# #### Growth Enterprise Market (GEM)
 
 # In[34]:
 
 
-# Growth Enterprise Market (GEM) 300059.XSHE
 check_noon_break('/home/xhu/log/test_GEMmarket.log','10000')
 
+
+# #### Sci-Tech Innovation Board (STAR)
 
 # In[53]:
 
 
-# STAR market
 check_noon_break('/home/xhu/log/testSTAR0919.log','10000')
 
 
@@ -322,12 +330,16 @@ def check_after_close(file_path, po):
     return (not afterEnd_placement) & close_placement
 
 
+# #### Mainboard
+
 # In[56]:
 
 
 # doClose = true
 check_after_close('/home/xhu/log/testclose0917.txt','10001')
 
+
+# #### Mainboard
 
 # In[9]:
 
@@ -367,42 +379,46 @@ def check_order_lot(file_path, po):
     return size_lot&multiple_of_lot
 
 
+# #### Mainboard
+
 # In[47]:
 
 
-# Mainborad
 check_order_lot('/home/xhu/log/testfill.txt','10000')
 
+
+# #### Small and Medium Enterprises (SME) Board
 
 # In[51]:
 
 
-# Small and Medium Enterprises (SME) Board 002024.XSHE
 check_order_lot('/home/xhu/log/test_SMEmarket.log','10000')
 
+
+# #### Growth Enterprise Market (GEM)
 
 # In[50]:
 
 
-# Growth Enterprise Market (GEM) 300059.XSHE
 check_order_lot('/home/xhu/log/test_GEMmarket.log','10000')
 
+
+# #### Sci-Tech Innovation Board (STAR)
 
 # In[46]:
 
 
-# STAR market
 check_order_lot('/home/xhu/log/testSTAR0919.log','10000')
 
 
-# ## Test case 5: Stop of a quick completion
+# ## Test case 5: Stop of a early completion
 # ### Description
 # The test is to check if the strategy would stop quickly after a small order placement like 100 or 200 shares is completed
 
-# In[4]:
+# In[55]:
 
 
-def check_quick_execution(file_path, po):
+def check_early_completion(file_path, po):
     log = read_log_file(file_path)
     cond_completed = r'.*Algo=VWAP,completed.*'
     cond_completedTime =  r'(?<=current_t=)\d*'
@@ -415,18 +431,46 @@ def check_quick_execution(file_path, po):
     return interval/1000000
 
 
+# #### Mainboard
+
 # In[6]:
 
 
 # 200 shares
-check_quick_execution('/home/xhu/log/test_quickExecution.log','10000')
+check_early_completion('/home/xhu/log/test_quickExecution.log','10000')
 
+
+# #### Mainboard
 
 # In[7]:
 
 
 # 100 shares
-check_quick_execution('/home/xhu/log/test_quickExecution.log','10001')
+check_early_completion('/home/xhu/log/test_quickExecution.log','10001')
+
+
+# #### Small and Medium Enterprises (SME) Board
+
+# In[62]:
+
+
+check_early_completion('/home/xhu/log/test_earlyCompleteSME.log','10000') # The market data is empty during 37884000000--37893000000 (9secs), 37896-37905000000(9secs)
+
+
+# #### Growth Enterprise Market (GEM)
+
+# In[60]:
+
+
+check_early_completion('/home/xhu/log/test_earlyCompleteGEM.log','10000')
+
+
+# #### Sci-Tech Innovation Board (STAR)
+
+# In[61]:
+
+
+check_early_completion('/home/xhu/log/test_earlyCompleteSTAR.log','10000') # The market data is empty during 35129000000--35145000000(16secs), --35157000000(12secs)
 
 
 # ## Test case 6: Stop of a large order
@@ -451,31 +495,35 @@ def check_large_stop(file_path, po):
     return interval/1000000
 
 
+# #### Mainboard
+
 # In[9]:
 
 
-# Mainboard
 check_large_stop('/home/xhu/log/test_largeStop.log','10000')
 
+
+# #### Small and Medium Enterprises (SME) Board
 
 # In[44]:
 
 
-# Small and Medium Enterprises (SME) Board 002024.XSHE
 check_large_stop('/home/xhu/log/test_SMEmarket.log','10000')
 
+
+# #### Growth Enterprise Market (GEM)
 
 # In[40]:
 
 
-# Growth Enterprise Market (GEM) 300059.XSHE
 check_large_stop('/home/xhu/log/test_GEMmarket.log','10000')
 
+
+# #### Sci-Tech Innovation Board (STAR)
 
 # In[10]:
 
 
-# STAR market
 check_large_stop('/home/xhu/log/test_largeStop.log','10001')
 
 
