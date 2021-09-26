@@ -4,7 +4,7 @@ Created on Thu Sep 23 20:20:04 2021
 
 @author: Hxl
 """
-# In[5]:
+# In[14]:
 
 
 import re
@@ -129,19 +129,20 @@ def get_stopped_time(log, po):
     stopped_time = int(get_specific_values(log,cond_stopped,cond_stoppedTime,cond_POid)[0])
     return stopped_time
     
-    
 
 
 # ## Test Case 1: Order completion
 # #### Description
 # The test case is for checking if the parent order in completed within the specified trading period.
 
-# In[71]:
+# In[42]:
 
 
 def check_order_completion(file_path, po):
     log = read_log_file(file_path)
     doClose, parentSize, symbol = get_po_info(log, po)
+    star = symbol[0:3] == '688'
+    
     orders = get_child_orders(log, po)
     orders, fill = get_fill_size(log, orders)
     # get supposedly filled size
@@ -149,25 +150,41 @@ def check_order_completion(file_path, po):
     # get actually filled size
     regular_filled = sum(fill.loc[fill['time'] <= close_start]['size'])
     close_filled = sum(fill.loc[fill['time'] > close_start]['size'])
-    star = symbol[0:3] == '688'
 #     print("regular_filled=%d, close_filled=%d, regular_filled+close_filled=%d"%(regular_filled,close_filled,regular_filled+close_filled))
     if star:
         regular_filled = (math.ceil(int(regular_filled) / 200.0)) * 200
     else:
         regular_filled = (math.ceil(int(regular_filled) / 100.0)) * 100
     all_filled = (regular_filled + int(close_filled)) == supposed_filled
+    print(regular_filled)
     return all_filled
 
 
 # In[61]:
 
 
+# Mainboard 
 check_order_completion('/home/xhu/log/testfill.txt','10000')
+
+
+# In[43]:
+
+
+# Small and Medium Enterprises (SME) Board 002024.XSHE
+check_order_completion('/home/xhu/log/test_SMEmarket.log','10000')
+
+
+# In[39]:
+
+
+# Growth Enterprise Market (GEM) 300059.XSHE
+check_order_completion('/home/xhu/log/test_GEMmarket.log','10000')
 
 
 # In[72]:
 
 
+# Sci-Tech Innovation Board (STAR) 688001.XSHG
 check_order_completion('/home/xhu/log/testSTAR0919.log','10000')
 
 
@@ -187,7 +204,7 @@ check_order_completion('/home/xhu/log/testclose688001.log','10000')
 # 1. End time between 11:30 and 13:00
 # 2. End time after 13:00
 
-# In[4]:
+# In[26]:
 
 
 def check_noon_break(file_path, po):
@@ -205,7 +222,29 @@ def check_noon_break(file_path, po):
 # In[5]:
 
 
+# Mainboard
 check_noon_break('/home/xhu/log/testclose0917.txt','10000')
+
+
+# In[52]:
+
+
+# Small and Medium Enterprises (SME) Board 002024.XSHE
+check_noon_break('/home/xhu/log/test_SMEmarket.log','10000')
+
+
+# In[34]:
+
+
+# Growth Enterprise Market (GEM) 300059.XSHE
+check_noon_break('/home/xhu/log/test_GEMmarket.log','10000')
+
+
+# In[53]:
+
+
+# STAR market
+check_noon_break('/home/xhu/log/testSTAR0919.log','10000')
 
 
 # ## Test case 3: Order placement after close auction start
@@ -304,26 +343,56 @@ check_after_close('/home/xhu/log/testclose0916.txt','10000')
 check_after_close('/home/xhu/log/testclose688001.1510.log','10000')
 
 
-# ## Test case 4: Order placement in STAR market
+# ## Test case 4: Order placement
 # ### Description
-# The test is to check if the child order placement of STAR market meets the order lot conditions
+# The test is to check if the child order placement meets the order lot conditions, this case is devided into three sub-cases:
+# 1. STAR market stocks, whose order lot is 200
+# 2. mainboard and other second board stocks, whose order lot is 100
 
-# In[66]:
+# In[45]:
 
 
-def check_STAR_order_lot(file_path, po):
+def check_order_lot(file_path, po):
     log = read_log_file(file_path)
+    doClose, parentSize, symbol = get_po_info(log, po)
+    star = symbol[0:3] == '688'
     child_orders = get_child_orders(log,po)
     # check if the create size > 200
-    size_lot = all((size>=200) for size in list(child_orders['create_size']))
-    multiple_of_200 = all((size%200 == 0)for size in list(child_orders['create_size']))
-    return size_lot&multiple_of_200
+    if star:
+        lot = 200
+    else:
+        lot = 100
+    size_lot = all((size>=lot) for size in list(child_orders['create_size']))
+    multiple_of_lot = all((size%lot == 0)for size in list(child_orders['create_size']))
+    return size_lot&multiple_of_lot
 
 
-# In[68]:
+# In[47]:
 
 
-check_STAR_order_lot('/home/xhu/log/testSTAR0919.log','10000')
+# Mainborad
+check_order_lot('/home/xhu/log/testfill.txt','10000')
+
+
+# In[51]:
+
+
+# Small and Medium Enterprises (SME) Board 002024.XSHE
+check_order_lot('/home/xhu/log/test_SMEmarket.log','10000')
+
+
+# In[50]:
+
+
+# Growth Enterprise Market (GEM) 300059.XSHE
+check_order_lot('/home/xhu/log/test_GEMmarket.log','10000')
+
+
+# In[46]:
+
+
+# STAR market
+check_order_lot('/home/xhu/log/testSTAR0919.log','10000')
 
 
 # ## Test case 5: Stop of a quick completion
@@ -385,7 +454,22 @@ def check_large_stop(file_path, po):
 # In[9]:
 
 
+# Mainboard
 check_large_stop('/home/xhu/log/test_largeStop.log','10000')
+
+
+# In[44]:
+
+
+# Small and Medium Enterprises (SME) Board 002024.XSHE
+check_large_stop('/home/xhu/log/test_SMEmarket.log','10000')
+
+
+# In[40]:
+
+
+# Growth Enterprise Market (GEM) 300059.XSHE
+check_large_stop('/home/xhu/log/test_GEMmarket.log','10000')
 
 
 # In[10]:
