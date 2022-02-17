@@ -4,11 +4,8 @@ Created on Thu Sep 23 20:20:04 2021
 
 @author: Hxl
 """
-# In[14]:
-
 
 import re
-import pandas as pd
 import math
 import pandas as pd
 
@@ -122,21 +119,16 @@ def get_cancel_msg(log, po):
     cancel_info = pd.DataFrame(list(zip(cancel_id, cancel_time)), columns=['oid', 'time'])
     return cancel_info
 
+
 def get_stopped_time(log, po):
     cond_stopped = r'AGS action.*removePO.*'
     cond_POid = r'.*POId=' + po
     cond_stoppedTime = r'(?<=current_t=)\d*'
     stopped_time = int(get_specific_values(log,cond_stopped,cond_stoppedTime,cond_POid)[0])
     return stopped_time
-    
 
 
-# ## Test Case 1: Order completion
-# #### Description
-# The test case is for checking if the parent order in completed within the specified trading period.
-
-# In[42]:
-
+# check functions
 
 def check_order_completion(file_path, po):
     log = read_log_file(file_path)
@@ -160,57 +152,6 @@ def check_order_completion(file_path, po):
     return all_filled
 
 
-# #### Mainboard
-
-# In[61]:
-
-
-check_order_completion('/home/xhu/log/testfill.txt','10000')
-
-
-# #### Small and Medium Enterprises (SME) Board
-
-# In[43]:
-
-
-check_order_completion('/home/xhu/log/test_SMEmarket.log','10000') # 002024.XSHE
-
-
-# #### Growth Enterprise Market (GEM)
-
-# In[54]:
-
-
-check_order_completion('/home/xhu/log/test_GEMmarket.log','10000') # 300059.XSHE
-
-
-# #### Sci-Tech Innovation Board (STAR)
-
-# In[72]:
-
-
-check_order_completion('/home/xhu/log/testSTAR0919.log','10000') #  688001.XSHG
-
-
-# In[53]:
-
-
-# This is about close auction, not considered now
-check_order_completion('/home/xhu/log/testclose688001.log','10000')
-
-
-# ## Test case 2: Order placement during noon break
-# #### Description
-# The test case is to check whether the system is still creating or cancelling orders after morning session end
-# 
-# The case is split into four sub-cases:
-# 
-# 1. End time between 11:30 and 13:00
-# 2. End time after 13:00
-
-# In[26]:
-
-
 def check_noon_break(file_path, po):
     log = read_log_file(file_path)
     # get all create and cancel order time
@@ -221,53 +162,6 @@ def check_noon_break(file_path, po):
     break_cancel = any((time > morning_end) & (time < afternoon_start) for time in list(cancel_msg['time']))
     break_placement = break_create | break_cancel
     return not break_placement
-
-
-# #### Mainboard
-
-# In[5]:
-
-
-check_noon_break('/home/xhu/log/testclose0917.txt','10000')
-
-
-# #### Small and Medium Enterprises (SME) Board
-
-# In[52]:
-
-
-check_noon_break('/home/xhu/log/test_SMEmarket.log','10000')
-
-
-# #### Growth Enterprise Market (GEM)
-
-# In[34]:
-
-
-check_noon_break('/home/xhu/log/test_GEMmarket.log','10000')
-
-
-# #### Sci-Tech Innovation Board (STAR)
-
-# In[53]:
-
-
-check_noon_break('/home/xhu/log/testSTAR0919.log','10000')
-
-
-# ## Test case 3: Order placement after close auction start
-# #### Description
-# The test case is to check if the system is still cancelling orders when close auction start, or creating orders after session end, and to check whether all the partially filled orders would be left into close auction
-# 
-# The case is split into four sub-cases:
-# 
-# 1. End time after 15:00 and not participate in close auction
-# 2. End time after 15:00 and participate in close auction
-# 3. End time between 14:57 and 15:00, cancel orders before 14:57
-# 
-# #### This is about close auction, not considered now
-
-# In[57]:
 
 
 # This is about close auction, not considered now
@@ -330,40 +224,6 @@ def check_after_close(file_path, po):
     return (not afterEnd_placement) & close_placement
 
 
-# #### Mainboard
-
-# In[56]:
-
-
-# doClose = true
-check_after_close('/home/xhu/log/testclose0917.txt','10001')
-
-
-# #### Mainboard
-
-# In[9]:
-
-
-# doClose = false
-check_after_close('/home/xhu/log/testclose0916.txt','10000')
-
-
-# In[26]:
-
-
-# STAR market, doClose = true, endTime = 1510
-check_after_close('/home/xhu/log/testclose688001.1510.log','10000')
-
-
-# ## Test case 4: Order placement
-# ### Description
-# The test is to check if the child order placement meets the order lot conditions, this case is devided into three sub-cases:
-# 1. STAR market stocks, whose order lot is 200
-# 2. mainboard and other second board stocks, whose order lot is 100
-
-# In[45]:
-
-
 def check_order_lot(file_path, po):
     log = read_log_file(file_path)
     doClose, parentSize, symbol = get_po_info(log, po)
@@ -379,45 +239,6 @@ def check_order_lot(file_path, po):
     return size_lot&multiple_of_lot
 
 
-# #### Mainboard
-
-# In[47]:
-
-
-check_order_lot('/home/xhu/log/testfill.txt','10000')
-
-
-# #### Small and Medium Enterprises (SME) Board
-
-# In[51]:
-
-
-check_order_lot('/home/xhu/log/test_SMEmarket.log','10000')
-
-
-# #### Growth Enterprise Market (GEM)
-
-# In[50]:
-
-
-check_order_lot('/home/xhu/log/test_GEMmarket.log','10000')
-
-
-# #### Sci-Tech Innovation Board (STAR)
-
-# In[46]:
-
-
-check_order_lot('/home/xhu/log/testSTAR0919.log','10000')
-
-
-# ## Test case 5: Stop of a early completion
-# ### Description
-# The test is to check if the strategy would stop quickly after a small order placement like 100 or 200 shares is completed
-
-# In[55]:
-
-
 def check_early_completion(file_path, po):
     log = read_log_file(file_path)
     cond_completed = r'.*Algo=VWAP,completed.*'
@@ -429,56 +250,6 @@ def check_early_completion(file_path, po):
     # return an interval
     interval = stopped_time - complete_time
     return interval/1000000
-
-
-# #### Mainboard
-
-# In[6]:
-
-
-# 200 shares
-check_early_completion('/home/xhu/log/test_quickExecution.log','10000')
-
-
-# #### Mainboard
-
-# In[7]:
-
-
-# 100 shares
-check_early_completion('/home/xhu/log/test_quickExecution.log','10001')
-
-
-# #### Small and Medium Enterprises (SME) Board
-
-# In[62]:
-
-
-check_early_completion('/home/xhu/log/test_earlyCompleteSME.log','10000') # The market data is empty during 37884000000--37893000000 (9secs), 37896-37905000000(9secs)
-
-
-# #### Growth Enterprise Market (GEM)
-
-# In[60]:
-
-
-check_early_completion('/home/xhu/log/test_earlyCompleteGEM.log','10000')
-
-
-# #### Sci-Tech Innovation Board (STAR)
-
-# In[61]:
-
-
-check_early_completion('/home/xhu/log/test_earlyCompleteSTAR.log','10000') # The market data is empty during 35129000000--35145000000(16secs), --35157000000(12secs)
-
-
-# ## Test case 6: Stop of a large order
-# #### Description
-# The test is to check if a large order with a limit duration quickly stops after the parent order end time
-# 
-
-# In[8]:
 
 
 def check_large_stop(file_path, po):
@@ -495,40 +266,27 @@ def check_large_stop(file_path, po):
     return interval/1000000
 
 
-# #### Mainboard
-
-# In[9]:
+import sys, getopt
 
 
-check_large_stop('/home/xhu/log/test_largeStop.log','10000')
+def main(argv):
+    filepath = ''
+    poid = ''
+    case = ''
+    try:
+        opts, args = getopt.getopt(argv,'c:l:p:',['case=','log=','poid='])
+    except getopt.GetoptError:
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ("-l","--log"):
+            filepath = arg
+        elif opt in ("-p","--poid"):
+            poid = arg
+        elif opt in ("-c","--case"):
+            case = arg
+    result = eval(case+'(\''+filepath+'\',\''+poid+'\')')
+    print(result)
 
 
-# #### Small and Medium Enterprises (SME) Board
-
-# In[44]:
-
-
-check_large_stop('/home/xhu/log/test_SMEmarket.log','10000')
-
-
-# #### Growth Enterprise Market (GEM)
-
-# In[40]:
-
-
-check_large_stop('/home/xhu/log/test_GEMmarket.log','10000')
-
-
-# #### Sci-Tech Innovation Board (STAR)
-
-# In[10]:
-
-
-check_large_stop('/home/xhu/log/test_largeStop.log','10001')
-
-
-# In[ ]:
-
-
-
-
+if __name__ == "__main__":
+    main(sys.argv[1:])
