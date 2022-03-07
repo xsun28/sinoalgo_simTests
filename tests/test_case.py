@@ -8,6 +8,7 @@ Created on Thu Sep 23 20:20:04 2021
 import re
 import math
 import pandas as pd
+import sys, getopt
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
@@ -76,13 +77,15 @@ def get_child_orders(log, po):
     cond_msg_order_id = r'(?<=orderId=)\d*'
     cond_msg_order_size = r'(?<=size=)\d*'
     cond_msg_order_type = r'(?<=orderType=)\w*'
+    cond_msg_order_price = r'(?<=price=)\d*'
     create_time = list(map(int, get_specific_values(log, cond_create_msg, cond_msg_time, cond_msg_po)))
     create_id = get_specific_values(log, cond_create_msg, cond_msg_order_id, cond_msg_po)
     create_size = list(map(int, get_specific_values(log, cond_create_msg, cond_msg_order_size, cond_msg_po)))
     create_type = get_specific_values(log, cond_create_msg, cond_msg_order_type, cond_msg_po)
+    create_price = list(map(int, get_specific_values(log, cond_create_msg, cond_msg_order_price, cond_msg_po)))
 
-    create = list(zip(create_time, create_size, create_type))
-    orders = pd.DataFrame(create, index=create_id, columns=['time', 'create_size', 'type'])
+    create = list(zip(create_time, create_size, create_price, create_type))
+    orders = pd.DataFrame(create, index=create_id, columns=['time', 'create_size', 'create_price', 'type'])
 
     return orders
 
@@ -266,7 +269,19 @@ def check_large_stop(file_path, po):
     return interval/1000000
 
 
-import sys, getopt
+def check_price_limit(file_path, po):
+    log = read_log_file(file_path)
+
+    cond_initFirstQuote = 'initWithFirstQuote.*'
+    cond_limitup = r'(?<=Limitup=)\d*'
+    cond_limitdown = r'(?<=Limitdown=)\d*'
+    cond_POid = r'.*Order=' + po + '.*'
+    limitup = int(get_specific_values(log,cond_initFirstQuote,cond_limitup,cond_POid)[0])
+    limitdown = int(get_specific_values(log, cond_initFirstQuote, cond_limitdown, cond_POid)[0])
+
+    child_orders = get_child_orders(log, po)
+    exceed = any((p > limitup) | (p < limitdown) for p in list(child_orders['create_price']))
+    return not exceed
 
 
 def main(argv):
