@@ -40,4 +40,4 @@ Several example cases of limit up and limit down were tested to **check price li
 |---|---|---|---|
 |000803.XSHE|reached limit up at 14:45, 2021/06/02|(10.51,12.85)|True|
 |603888.XSHG|reached limit down at 14:00, 2021/06/02|(23.29,28.47)|True|
-|688004.XSHG|reached limit up at 9:35, 2021/06/02|(32.74,40.02)|True|
+|688004.XSHG|reached limit up at 9:35, 2021/06/02|(29.10,43.65)|True|
