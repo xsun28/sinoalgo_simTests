@@ -1,5 +1,5 @@
 from qa_job.check_order_func import CheckOrder
-from resources.config import cfg
+from config.config import cfg
 import pandas as pd
 
 
