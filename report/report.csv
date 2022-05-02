@@ -1,0 +1,13 @@
+order,purpose,result,msg
+000001.XSHE,check_order_completion,True,
+000001.XSHE,check_order_lot,True,
+000001.XSHE,check_noon_break,True,
+000001.XSHE,check_size_error,True,
+688001.XSHG,check_size_error,True,
+000001.XSHE,check_price_limit,True,
+000001.XSHE,check_parent_time,True,
+000001.XSHE,check_parent_time,True,
+000001.XSHE,check_parent_rate,True,
+000001.XSHE,check_rate_error,True,
+000001.XSHE,check_target_rate,True,
+688001.XSHG,check_target_rate,True,

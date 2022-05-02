@@ -1,7 +1,7 @@
 from qa_job.check_order_func import CheckOrder
 from config.config import cfg
 import pandas as pd
-
+from pathlib import Path
 
 def read_log_file(logfile):
     logfile = open(logfile, encoding="utf8", errors='ignore')
@@ -34,5 +34,7 @@ class QA:
                     i += 1
                 else:
                     print("WARNING: this purpose does not exist")
-        result_df.to_csv('report.csv', index=False,)
+        report_file_path = Path(cfg.report_file_path)
+        report_file_path.parent.mkdir(parents=True, exist_ok=True)
+        result_df.to_csv(report_file_path, index=False)
         return

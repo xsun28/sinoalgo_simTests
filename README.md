@@ -22,16 +22,16 @@ To start a new test, one should assign the orders and cases in `resources/order.
 │
 ```
 ### input
-1. order_params: `'/volume1/home/xhu/sinoalgo_QA/resources/orders.csv'`
-2. log file path: `'/volume1/home/xhu/sinoalgo_QA/resources/sinoalgo-20220428T184032.log'`
+1. order_params: `'resources/orders.csv'`
+2. example log file path: `'resources/sinoalgo-20220428T184032.log'`
 
-Inputs are specified in `resources/config.py`
+Program parameters such as input/output paths are specified in `config/config.py`
 
 ### run test
 `python main.py`
 
 ### output:
-This script will output the result dataframe in `report.csv`, which contains four columns: ticker, purpose, result(True means pass, False means failed) and error msg. 
+This script will output the result dataframe in `report/report.csv`, which contains four columns: ticker, purpose, result(True means pass, False means failed) and error msg. 
 
 Following dataframe shows a successful test and a failed test of check_order_completion:
 
