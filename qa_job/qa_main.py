@@ -3,6 +3,7 @@ from config.config import cfg
 import pandas as pd
 from pathlib import Path
 
+
 def read_log_file(logfile):
     logfile = open(logfile, encoding="utf8", errors='ignore')
     log = logfile.readlines()

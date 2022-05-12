@@ -179,3 +179,11 @@ class ParseOrderInfo:
         cond_stoppedTime = r'(?<=current_t=)\d*'
         stopped_time = int(get_specific_values(self.log, cond_stopped, cond_stoppedTime, cond_POid)[0])
         return stopped_time
+
+    def get_market_data(self):
+        market_data_tag = "calling AGS onMarketData"
+        cond_symbol = 'symbol=' + self.order['symbol']
+        market_data = parse_whole_line(self.log, market_data_tag, cond_symbol, "calling AGS onMarketData, data=|")
+        market_data[['time', 'bid1', 'bsize1', 'ask1', 'asize1', 'price', 'volume', 'turnover', 'accvol', 'acctur']] = market_data[
+            ['time', 'bid1', 'bsize1', 'ask1', 'asize1', 'price', 'volume', 'turnover', 'accvol', 'acctur']].astype('int')
+        return market_data

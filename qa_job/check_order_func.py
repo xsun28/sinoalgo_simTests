@@ -64,7 +64,7 @@ class CheckOrder:
 
     def check_rate_error(self):
         check_rate = ("|Max participation rate must larger than 0|" in self.order['error_msg']) or (
-            "|Min participation rate is larger than max participation rate|" in self.order['error_msg'])
+                "|Min participation rate is larger than max participation rate|" in self.order['error_msg'])
         if check_rate:
             return True
         else:
@@ -95,15 +95,22 @@ class CheckOrder:
         # get actually filled size
         regular_filled = sum(fill.loc[fill['time'] <= close_start]['size'])
         close_filled = sum(fill.loc[fill['time'] > close_start]['size'])
-        if star:
-            regular_filled = (math.ceil(int(regular_filled) / 200.0)) * 200
-        else:
-            regular_filled = (math.ceil(int(regular_filled) / 100.0)) * 100
+        regular_filled = (math.ceil(int(regular_filled) / 200.0)) * 200 if star else (math.ceil(int(regular_filled) / 100.0)) * 100
         all_filled = (regular_filled + int(close_filled)) == supposed_filled
         if all_filled:
             return True
         else:
-            return "filled_size=" + str(regular_filled) + ", smaller than parent_order_size=" + str(supposed_filled)
+            if self.poi.order['strategyType'] == 'POV':
+                market_data = self.poi.get_market_data()
+                start_volume = market_data[market_data['time'] < self.order['startTime']]['accvol'].values[-1]
+                end_volume = market_data[market_data['time'] < self.order['endTime']]['accvol'].values[-1]
+                market_SV = end_volume - start_volume
+                if market_SV * float(self.poi.order['target_rate']) < self.poi.order['size']:
+                    return True
+                else:
+                    return "early completion should occurs due to POV target rate =" + self.poi.order['target_rate']
+            else:
+                return "filled_size=" + str(regular_filled) + ", smaller than parent_order_size=" + str(supposed_filled)
 
     def check_noon_break(self):
         # get all create and cancel order time
@@ -182,59 +189,37 @@ class CheckOrder:
         star = self.poi.order['symbol'][0:3] == '688'
         child_orders = self.poi.child
         # check if the create size > 200
-        if star:
-            lot = 200
-        else:
-            lot = 100
+        lot = 200 if star else 100
         size_lot = all((size >= lot) for size in list(child_orders['size']))
         multiple_of_lot = all((size % lot == 0) for size in list(child_orders['size']))
         return size_lot & multiple_of_lot
 
-    def check_early_completion(self):
-        cond_completed = r'Algo=VWAP,completed'
-        cond_completedTime = r'(?<=current_t=)\d*'
-        cond_PO = r'Order=' + self.poi.po
-        complete_time = int(parse.get_specific_values(self.log, cond_completed, cond_completedTime, cond_PO)[0])
-        stopped_time = self.poi.get_stopped_time()
-
-        # return an interval
-        interval = stopped_time - complete_time
-        return interval / 1000000
-
-    def check_large_stop(self):
-        stopped_time = self.poi.get_stopped_time()
-
-        # get start end time of parent order
-        condPO = r'Added parent order'  # AddPO line
-        condPO_endtime = r'(?<=endTime=)\d*'
-        condPO_id = r'orderId=' + self.poi.po  # conditions to get doClose information of po:
-        endTime = int(parse.get_specific_values(self.log, condPO, condPO_endtime, condPO_id)[0])
-
-        interval = stopped_time - endTime
-        return interval / 1000000
-
     def check_price_limit(self):
-        cond_initFirstQuote = 'initWithFirstQuote'
-        cond_limitup = r'(?<=Limitup=)\d*'
-        cond_limitdown = r'(?<=Limitdown=)\d*'
-        cond_POid = r'Order=' + self.poi.po
-        cond_plimit_error = 'LimitUpPrice, stop order'
-        if parse.get_specific_values(self.log, cond_initFirstQuote, cond_limitup, cond_POid)[0] == '':
-            check_plimit = self.poi.po in parse.get_specific_values(self.log, cond_plimit_error, r'(?<=Order=)\d*', '')
-            if check_plimit:
-                return True
-            else:
-                return "plimit unchecked"
+        POid = r'Order=' + self.poi.po
+        cond_buy_limit = 'Plimit>LimitUpPrice'
+        cond_sell_limit = 'Plimit<LimitDownPrice'
+        if self.poi.po['side'] == 1:
+            check_plimit = self.poi.po in parse.get_specific_values(self.log, cond_buy_limit, r'(?<=Order=)\d*', POid)
         else:
-            limitup = int(parse.get_specific_values(self.log, cond_initFirstQuote, cond_limitup, cond_POid)[0])
-            limitdown = int(parse.get_specific_values(self.log, cond_initFirstQuote, cond_limitdown, cond_POid)[0])
+            check_plimit = self.poi.po in parse.get_specific_values(self.log, cond_sell_limit, r'(?<=Order=)\d*', POid)
+        if check_plimit:
+            return True
+        else:
+            return "plimit unchecked"
 
-            child_orders = self.poi.child
-            exceed_limit_up = any((p > limitup) for p in list(child_orders['price']))
-            exceed_limit_down = any((p < limitdown) for p in list(child_orders['price']))
-            if not exceed_limit_up | exceed_limit_down:
-                return True
-            elif exceed_limit_up:
-                return "order create price higher than limit up price"
-            else:
-                return "order create price lower than limit down price"
+    def check_child_price(self):
+        cond_initFirstQuote = 'initWithFirstQuote'
+        cond_plimit = r'(?<=Plimit=)\d*'
+        cond_pstop = r'(?<=Pstop=)\d*'
+        POid = r'Order=' + self.poi.po
+        PLimit = int(parse.get_specific_values(self.log, cond_initFirstQuote, cond_plimit, POid)[0])
+        PStop = int(parse.get_specific_values(self.log, cond_initFirstQuote, cond_pstop, POid)[0])
+
+        exceed_Plimit = any((p > PLimit) for p in list(self.poi.child['price'])) if self.poi.po['side'] == 1 else any(
+            (p < PLimit) for p in list(self.poi.child['price']))
+        exceed_Pstop = any((p < PStop) for p in list(self.poi.child['price'])) if self.poi.po['side'] == 1 else any(
+            (p > PStop) for p in list(self.poi.child['price']))
+        if not exceed_Plimit | exceed_Pstop:
+            return True
+        else:
+            return "child order price exceed the range of Plimit and Pstop"
