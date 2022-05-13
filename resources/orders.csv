@@ -1,3 +1,5 @@
 ﻿algo,ticker,OrderSize,OrderSide,Plimit,DoClose,StartTime,EndTime,MinRate,Param,Purpose
 POV,000001.XSHE,100000,1,,FALSE,94000000,95000000,0,target_rate=0.01,check_order_completion
 POV,000001.XSHE,10000,1,,FALSE,95000000,100000000,0,target_rate=0.8,check_order_completion
+VWAP,000001.XSHE,1000,1,20.5,FALSE,100000000,101000000,0,null,check_price_limit
+VWAP,000001.XSHE,1000,-1,8,FALSE,101000000,102000000,0,null,check_price_limit

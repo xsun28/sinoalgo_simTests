@@ -56,7 +56,8 @@ Currently, there are following test cases:
 | check_parent_rate      | Assign a parent order min rate smaller than 0 or max rate bigger than 1, which should be corrected                                                                                                   | minRate: -1                              | Correct the min \ max rate, then add the parent order                                                                                                                                                |
 | check_rate_error       | When the assigned min rate is bigger than max rate, test if the algo can check this error                                                                                                            | minRate: 10                              | Throw parent rate error message, and this parent order cannot be added                                                                                                                               |                 
 | check_target_rate      | For POV, when target rate is out of range, or not set, test if the algo can check this error                                                                                                         | Param: null                              | Throw target rate error message, and this parent order cannot be added                                                                                                                               |
-| check_price_limit      | To test whether the create price of limit orders is in the range of limit up and down, note that the limit up down percent is 20% for Tech Board, 30% for New Third Board, and 10% for other boards. |                                          | The create price of all child orders is in the range of limit up and down                                                                                                                            |
+| check_price_limit      | To test whether a wrong Plimit assigned by client can be checked                                                                                                                                     |                                          | Check the price limit before initing first quote, and once the price limit out range limit up down price, stop the parent order                                                                      |
+| check_child_price      | To test whether the create price of limit orders is in the range of limit up and down, note that the limit up down percent is 20% for Tech Board, 30% for New Third Board, and 10% for other boards. |                                          | The create price of all child orders is in the range of limit up and down                                                                                                                            |
 
 ## Test results examples
 
@@ -79,9 +80,11 @@ Tests in `resources/orders1.csv` have been conducted, corresponding log is in `r
 | 688001.XSHG | check_target_rate      | True   |     |
 
 ### 2. 
-Tests in `resources/orders.csv` have been conducted for POV early completion and not finished cases, corresponding log is in `resources/sinoalgo-20220509T100427.log`, and the results are shown below:
+Tests in `resources/orders.csv` have been conducted for POV cases and price limit cases, corresponding log is in `resources/sinoalgo-20220513T182652.log`, and the results are shown below:
 
 | ticker      | purpose                | result | msg |
 |-------------|------------------------|--------|-----|
 | 000001.XSHE | check_order_completion | True   |     |
 | 000001.XSHE | check_order_completion | True   |     |
+| 000001.XSHE | check_price_limit      | True   |     |
+| 000001.XSHE | check_price_limit      | True   |     |

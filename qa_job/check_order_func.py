@@ -198,7 +198,7 @@ class CheckOrder:
         POid = r'Order=' + self.poi.po
         cond_buy_limit = 'Plimit>LimitUpPrice'
         cond_sell_limit = 'Plimit<LimitDownPrice'
-        if self.poi.po['side'] == 1:
+        if self.poi.order['side'] == 1:
             check_plimit = self.poi.po in parse.get_specific_values(self.log, cond_buy_limit, r'(?<=Order=)\d*', POid)
         else:
             check_plimit = self.poi.po in parse.get_specific_values(self.log, cond_sell_limit, r'(?<=Order=)\d*', POid)
